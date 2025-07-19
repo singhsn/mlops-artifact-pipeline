@@ -1,30 +1,31 @@
-name: Inference
+name: Inference Pipeline
 
 on:
   push:
     branches: [inference-branch]
 
 jobs:
-  run-tests:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run tests
-        run: pytest tests
+        run: |
+          PYTHONPATH=. pytest -v
 
-  train-model:
-    needs: run-tests
+  train:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Train model
@@ -35,17 +36,17 @@ jobs:
           name: model-artifact
           path: model_train.pkl
 
-  run-inference:
-    needs: train-model
+  inference:
+    needs: train
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Download model
+      - name: Download model artifact
         uses: actions/download-artifact@v4
         with:
           name: model-artifact
